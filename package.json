@@ -1,11 +1,19 @@
 {
-  "name": "node-example",
-  "version": "0.0.1",
-  "dependencies": {
-    "express": "2.5.x"
-  },
-  "engines": {
-    "node": "0.8.x",
-    "npm": "1.1.x"
-  }
+    "name": "henri-potier",
+    "version": "0.2.0",
+    "description": "Backend for Henri Potiers books",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "aws-sdk": "^2.610.0",
+        "body-parser": "^1.19.0",
+        "express": "4.17.1",
+        "lodash": "2.4.1",
+        "moment": "2.24.0"
+    },
+    "engines": {
+        "node": "12"
+    },
+    "license": "MIT"
 }
