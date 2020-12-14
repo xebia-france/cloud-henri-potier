@@ -2,16 +2,25 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const _ = require('lodash');
-const AWS = require("aws-sdk")
 const moment = require('moment');
 const books = require('./public/books.json');
+const EventBridgeRepository = require('./repositories/EventBridge');
+const PubSubRepository = require('./repositories/PubSub');
 
-const eventbridge = new AWS.EventBridge({apiVersion: '2015-10-07'});
 
 const PORT = process.env.PORT || 5000;
-const EVENTBUS_NAME = process.env.EVENTBUS_NAME;
-
 console.log("Application running with environment variables", process.env)
+
+function createPromotionRepository(provider) {
+  switch (provider) {
+    case "GCP":
+      return new PubSubRepository()
+    case "AWS":
+    default:
+      return new EventBridgeRepository(process.env.EVENTBUS_NAME)
+  }
+}
+const promotionRepository = createPromotionRepository(process.env.CLOUD_PROVIDER)
 
 app.set('port', PORT);
 app.use(bodyParser.json())
@@ -84,20 +93,7 @@ app.post('/promotions', async function(request, response) {
     response.status(400).json({"error": "Empty promotion"})
   }
 
-  const params = {
-    Entries: [
-      {
-        Detail: JSON.stringify(promo),
-        DetailType: "NEW_PROMOTION",
-        EventBusName: EVENTBUS_NAME,
-        Source: 'henripotier.api',
-        Time: new Date()
-      }
-    ]
-  };
-  const responseEvent = await eventbridge.putEvents(params).promise();
-  console.log("Response for putEvent", responseEvent);
-
+  await promotionRepository.sendPromotion(promo)
   response.json({"message": "promotion created"});
 });
 
